@@ -4,8 +4,6 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
 import os
-import datetime
-
 
 class board_data(Dataset):
     def __init__(self, dataset):  # dataset = list of (s, p, v)

@@ -23,8 +23,8 @@ class UCTNode():
 
     What it stores
     ----------
-    child_priors : probabailites for all 4672 moves (initially zero)
-    child_total_value : sum of all value estimates from a simultation
+    child_priors : probabilities for all 4672 moves (initially zero)(just like alpha zero)
+    child_total_value : sum of all value estimates from a simulation
     child_number_visits: number of visit to a child move
     action_idxes: all legal moves from this position
 
