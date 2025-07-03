@@ -1,10 +1,8 @@
-#!/usr/bin/env python
-
 import numpy as np
 from pytorch.alphazero.model_components.chess_board import board as chessboard
 
 def encode_board(board):
-    board_state = board.current_board;
+    board_state = board.current_board
     encoded = np.zeros([8,8,22]).astype(int)
     encoder_dict = {"R":0, "N":1, "B":2, "Q":3, "K":4, "P":5, "r":6, "n":7, "b":8, "q":9, "k":10, "p":11}
     for i in range(8):
@@ -132,7 +130,7 @@ def encode_action(board,initial_pos,final_pos,underpromote=None):
 
 def decode_action(board,encoded):
     encoded_a = np.zeros([4672]); encoded_a[encoded] = 1; encoded_a = encoded_a.reshape(8,8,73)
-    a,b,c = np.where(encoded_a == 1); # i,j,k = i[0],j[0],k[0]
+    a,b,c = np.where(encoded_a == 1) # i,j,k = i[0],j[0],k[0]
     i_pos, f_pos, prom = [], [], []
     for pos in zip(a,b,c):
         i,j,k = pos
