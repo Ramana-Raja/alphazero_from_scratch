@@ -64,6 +64,12 @@ class UCTNode():
                 abs(self.child_priors) / (1 + self.child_number_visits))
 
     def best_child(self):
+        """
+        finds best child node according to q-value and exploration term
+
+        returns:
+            best child
+        """
         if self.action_idxes != []:
             bestmove = self.child_Q() + self.child_U()
             bestmove = self.action_idxes[np.argmax(bestmove[self.action_idxes])] #best move from all legal moves of current postion
@@ -72,6 +78,12 @@ class UCTNode():
         return bestmove
 
     def select_leaf(self):
+        """
+        selects best from the root
+
+        return:
+            best leaf
+        """
         current = self
         while current.is_expanded:
             best_move = current.best_child()
@@ -79,6 +91,11 @@ class UCTNode():
         return current
 
     def add_dirichlet_noise(self, action_idxs, child_priors):
+        """
+        adds some randomness
+        return:
+            updated policy
+        """
         valid_child_priors = child_priors[action_idxs]  # select only legal moves entries in child_priors array
         valid_child_priors = 0.75 * valid_child_priors + 0.25 * np.random.dirichlet(
             np.zeros([len(valid_child_priors)], dtype=np.float32) + 0.3)
@@ -86,6 +103,12 @@ class UCTNode():
         return child_priors
 
     def expand(self, child_priors):
+        """
+        expands current leaf
+
+        return:
+            return the policy of the leaf
+        """
         self.is_expanded = True
         action_idxs = []
         c_p = child_priors
@@ -138,6 +161,9 @@ class UCTNode():
         return self.children[move]
 
     def backup(self, value_estimate: float):
+        """
+        backtracking...
+        """
         current = self
         while current.parent is not None:
             current.number_visits += 1
@@ -156,6 +182,14 @@ class DummyNode(object):
 
 
 def UCT_search(game_state, num_reads, net, batch_size=64):
+    """
+
+    :param game_state: state/chess board
+    :param num_reads: number of simulation
+    :param net: model which predicits the value and policy
+    :param batch_size: batch which is going to be used for prediction
+    :return: best move from current position and root
+    """
     root = UCTNode(game_state, move=None, parent=DummyNode())
     simulations_done = 0
 
@@ -163,9 +197,8 @@ def UCT_search(game_state, num_reads, net, batch_size=64):
         leaf_nodes = []
         encoded_states = []
 
-        # Collect batch
         while len(leaf_nodes) < batch_size and simulations_done < num_reads:
-            leaf = root.select_leaf()  #selects best leaf which has besy u and q value not which has highest policy value
+            leaf = root.select_leaf()  #selects best leaf which has best u and q value not which has highest policy value
             encoded_s = ed.encode_board(leaf.game)
             encoded_s = encoded_s.transpose(2, 0, 1)  # (18, 8, 8)
             encoded_states.append(torch.from_numpy(encoded_s).float())
@@ -221,6 +254,9 @@ def do_decode_n_move_pieces(board, move):
 
 
 def get_policy(root):
+    """
+    get the real calculated policy for model training
+    """
     policy = np.zeros([4672], dtype=np.float32)
     for idx in np.where(root.child_number_visits != 0)[0]:
         policy[idx] = root.child_number_visits[idx] / root.child_number_visits.sum()
@@ -235,16 +271,14 @@ def save_as_pickle(filename, data,index):
     with open(completeName, 'wb') as output:
         pickle.dump(data, output)
 
-
-def load_pickle(filename):
-    completeName = os.path.join("./datasets/", filename)
-    with open(completeName, 'rb') as pkl_file:
-        data = pickle.load(pkl_file)
-    return data
-
-
 def MCTS_self_play(chessnet, num_games, cpu,index):
-
+    """
+    :param chessnet: model used for prediction
+    :param num_games: total number of games to be played
+    :param cpu: cpu-id (int)
+    :param index: which folder to save the games
+    :return: -
+    """
     for idxx in range(0, num_games):
         current_board = c_board()
         checkmate = False
